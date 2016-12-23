@@ -9,3 +9,11 @@ type MailboxSizeTooSmallError string
 func (e MailboxSizeTooSmallError) Error() string {
 	return string(e)
 }
+
+// ActorShuttingDownError is returned when you've misconfigured mailboxes
+type ActorShuttingDownError string
+
+// Error implements the error interface
+func (e ActorShuttingDownError) Error() string {
+	return string(e)
+}

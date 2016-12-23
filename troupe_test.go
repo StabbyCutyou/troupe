@@ -1,105 +1,73 @@
-package troupe_test
+package troupe
 
 import (
 	"testing"
 	"time"
-
-	"github.com/StabbyCutyou/troupe"
 )
 
-func BenchmarkTroupe1(b *testing.B) {
-	s, _ := troupe.NewTroupe(troupe.Config{
-		Min:     0,
-		Initial: 0,
-		Max:     1,
-	})
-
-	for i := 0; i < b.N; i++ {
-		s.Assign(func() error {
-			time.Sleep(1 * time.Nanosecond)
-			return nil
-		})
-	}
-	s.Shutdown()
-	s = nil
+type testCase struct {
+	title string
+	cfg   Config
+	work  Work
 }
 
-func BenchmarkTroupe10(b *testing.B) {
-	s, _ := troupe.NewTroupe(troupe.Config{
-		Min:     0,
-		Initial: 0,
-		Max:     10,
-	})
-
-	for i := 0; i < b.N; i++ {
-		s.Assign(func() error {
-			time.Sleep(1 * time.Nanosecond)
-			return nil
-		})
-	}
-	s.Shutdown()
+var onenano Work = func() error {
+	time.Sleep(1 * time.Nanosecond)
+	return nil
 }
 
-func BenchmarkTroupe100(b *testing.B) {
-	s, _ := troupe.NewTroupe(troupe.Config{
-		Min:     0,
-		Initial: 0,
-		Max:     100,
-	})
-
-	for i := 0; i < b.N; i++ {
-		s.Assign(func() error {
-			time.Sleep(1 * time.Nanosecond)
-			return nil
-		})
-	}
-	s.Shutdown()
+var onemilli Work = func() error {
+	time.Sleep(1 * time.Millisecond)
+	return nil
 }
 
-func BenchmarkTroupe1000(b *testing.B) {
-	s, _ := troupe.NewTroupe(troupe.Config{
-		Min:     0,
-		Initial: 0,
-		Max:     1000,
-	})
-
-	for i := 0; i < b.N; i++ {
-		s.Assign(func() error {
-			time.Sleep(1 * time.Nanosecond)
-			return nil
-		})
-	}
-	s.Shutdown()
+var testCases = []testCase{
+	{
+		title: "1 actor - 1 nano", work: onenano, cfg: Config{Min: 0, Initial: 0, Max: 1},
+	},
+	{
+		title: "10 actors - 1 nano", work: onenano, cfg: Config{Min: 0, Initial: 0, Max: 10},
+	},
+	{
+		title: "100 actors - 1 nano", work: onenano, cfg: Config{Min: 0, Initial: 0, Max: 100},
+	},
+	{
+		title: "1000 actors - 1 nano", work: onenano, cfg: Config{Min: 0, Initial: 0, Max: 1000},
+	},
+	{
+		title: "10000 actors - 1 nano", work: onenano, cfg: Config{Min: 0, Initial: 0, Max: 10000},
+	},
+	{
+		title: "100000 actors - 1 nano", work: onenano, cfg: Config{Min: 0, Initial: 0, Max: 100000},
+	},
+	{
+		title: "1 actor - 1 milli", work: onemilli, cfg: Config{Min: 0, Initial: 0, Max: 1},
+	},
+	{
+		title: "10 actors - 1 milli", work: onemilli, cfg: Config{Min: 0, Initial: 0, Max: 10},
+	},
+	{
+		title: "100 actors - 1 milli", work: onemilli, cfg: Config{Min: 0, Initial: 0, Max: 100},
+	},
+	{
+		title: "1000 actors - 1 milli", work: onemilli, cfg: Config{Min: 0, Initial: 0, Max: 1000},
+	},
+	{
+		title: "10000 actors - 1 milli", work: onemilli, cfg: Config{Min: 0, Initial: 0, Max: 10000},
+	},
+	{
+		title: "100000 actors - 1 milli", work: onemilli, cfg: Config{Min: 0, Initial: 0, Max: 100000},
+	},
 }
 
-func BenchmarkTroupe10000(b *testing.B) {
-	s, _ := troupe.NewTroupe(troupe.Config{
-		Min:     0,
-		Initial: 0,
-		Max:     10000,
-	})
-
-	for i := 0; i < b.N; i++ {
-		s.Assign(func() error {
-			time.Sleep(1 * time.Nanosecond)
-			return nil
+func BenchmarkTroupe(b *testing.B) {
+	for _, c := range testCases {
+		b.Run(c.title, func(b *testing.B) {
+			s, _ := NewTroupe(c.cfg)
+			for i := 0; i < b.N; i++ {
+				s.Assign(c.work)
+			}
+			s.Shutdown()
 		})
 	}
-	s.Shutdown()
-}
-
-func BenchmarkTroupe100000(b *testing.B) {
-	s, _ := troupe.NewTroupe(troupe.Config{
-		Min:     0,
-		Initial: 0,
-		Max:     100000,
-	})
-
-	for i := 0; i < b.N; i++ {
-		s.Assign(func() error {
-			time.Sleep(1 * time.Nanosecond)
-			return nil
-		})
-	}
-	s.Shutdown()
 }
