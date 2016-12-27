@@ -1,6 +1,7 @@
 package troupe
 
 import (
+	"fmt"
 	"sync/atomic"
 	"time"
 )
@@ -13,6 +14,7 @@ type Actor struct {
 	lastAccepted *int64
 	busy         *int32
 	lastFinished *int64
+	ID           int
 }
 
 // ActorConfig is the configuration info needed to start a Actor
@@ -23,7 +25,7 @@ type ActorConfig struct {
 // NewActor returns a new Actor
 func NewActor(c ActorConfig) (*Actor, error) {
 	if c.MailboxSize < 1 {
-		return nil, MailboxSizeTooSmallError("mailbox must be greater than 0")
+		return nil, ActorConfigurationError("mailbox must be greater than 0")
 	}
 	a := &Actor{
 		agent:        make(chan Work, c.MailboxSize),
@@ -42,8 +44,12 @@ func (a *Actor) Accept(w Work) error {
 	if a.IsShutdown() {
 		return ActorShuttingDownError("actor is shutting down, cannot accept work")
 	}
-	a.agent <- w
-	atomic.StoreInt64(a.lastAccepted, time.Now().Unix())
+	select {
+	case a.agent <- w:
+		atomic.StoreInt64(a.lastAccepted, time.Now().Unix())
+	default:
+		return ActorFullError("actor is full, cannot accept work")
+	}
 	return nil
 }
 
@@ -88,6 +94,15 @@ func (a *Actor) stop() {
 	close(a.quit)
 }
 
+// isFinished is meant for internal use only, to be called only after shutdown is initiated so
+// that the system knows when the actor has finished all of it's available work
+func (a *Actor) isFinished() bool {
+	if len(a.agent) == 0 && a.IsShutdown() {
+		return true
+	}
+	return false
+}
+
 func (a *Actor) loop() {
 	for {
 		select {
@@ -97,12 +112,19 @@ func (a *Actor) loop() {
 				a.errorHandler(err)
 			}
 			atomic.StoreInt64(a.lastFinished, time.Now().Unix())
-			atomic.StoreInt32(a.busy, 1)
+			atomic.StoreInt32(a.busy, 0)
 		case <-a.quit:
 			return
 		default:
 			// TODO provide a means of configurable backoff
-			time.Sleep(50 * time.Microsecond)
+			time.Sleep(200 * time.Microsecond)
 		}
+	}
+}
+
+func (a *Actor) join() {
+	for !a.isFinished() {
+		fmt.Printf("%d\t%v\n", len(a.agent), a.IsShutdown())
+		time.Sleep(200 * time.Microsecond)
 	}
 }
