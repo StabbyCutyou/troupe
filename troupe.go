@@ -61,7 +61,6 @@ func NewTroupe(cfg Config) (*Troupe, error) {
 		if b, err = NewActor(bCfg); err != nil {
 			return nil, err
 		}
-		b.ID = len(Actors)
 		Actors = append(Actors, b)
 	}
 	return &Troupe{
@@ -74,16 +73,21 @@ func NewTroupe(cfg Config) (*Troupe, error) {
 }
 
 // Shutdown shuts down the Troupe
-func (t *Troupe) Shutdown() {
+func (t *Troupe) Shutdown() error {
 	t.ActorMutex.Lock()
+	defer t.ActorMutex.Unlock()
+	if t.shutdown {
+		return ShuttingDownError("you cannot call shutdown more than once on a troupe")
+	}
 	t.shutdown = true
 	// Stop all of them right away, to shut off their ability to accept work
 	// Is this necessary to break into 2 steps?
 	for _, a := range t.Actors {
 		a.stop()
 	}
-	t.ActorMutex.Unlock()
+
 	fmt.Printf("Number of goroutines: %d\n", runtime.NumGoroutine())
+	return nil
 }
 
 // Join is something i'm experimenting with to call after Shutdown, so you know when all work has ceased
@@ -133,7 +137,6 @@ func (t *Troupe) Assign(w Work) error {
 		if err != nil {
 			return err
 		}
-		item.ID = len(t.Actors)
 		if err = item.Accept(w); err != nil {
 			return err
 		}

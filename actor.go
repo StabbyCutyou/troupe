@@ -1,9 +1,14 @@
 package troupe
 
 import (
-	"fmt"
 	"sync/atomic"
 	"time"
+)
+
+// These consts define the various states of the Actor
+const (
+	NOTBUSY int32 = iota
+	BUSY
 )
 
 // Actor is an actor, who receives messages and acts over them
@@ -14,7 +19,6 @@ type Actor struct {
 	lastAccepted *int64
 	busy         *int32
 	lastFinished *int64
-	ID           int
 }
 
 // ActorConfig is the configuration info needed to start a Actor
@@ -72,7 +76,7 @@ func (a *Actor) LastFinished() int64 {
 // protected  by a Mutex, by the time you take action on the result of this value,
 // it may have changed by another concurrent operation.
 func (a *Actor) IsBusy() bool {
-	if busy := atomic.LoadInt32(a.busy); busy == 1 {
+	if busy := atomic.LoadInt32(a.busy); busy == BUSY {
 		return true
 	}
 	return false
@@ -107,12 +111,12 @@ func (a *Actor) loop() {
 	for {
 		select {
 		case w := <-a.agent:
-			atomic.StoreInt32(a.busy, 1)
+			atomic.StoreInt32(a.busy, BUSY)
 			if err := w(); err != nil && a.errorHandler != nil {
 				a.errorHandler(err)
 			}
 			atomic.StoreInt64(a.lastFinished, time.Now().Unix())
-			atomic.StoreInt32(a.busy, 0)
+			atomic.StoreInt32(a.busy, NOTBUSY)
 		case <-a.quit:
 			return
 		default:
@@ -124,7 +128,6 @@ func (a *Actor) loop() {
 
 func (a *Actor) join() {
 	for !a.isFinished() {
-		fmt.Printf("%d\t%v\n", len(a.agent), a.IsShutdown())
 		time.Sleep(200 * time.Microsecond)
 	}
 }
