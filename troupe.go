@@ -10,15 +10,17 @@ import (
 	"time"
 )
 
-// AssignMode determines if the troupe uses a random assignment, or a priority assignment
-// Review the Assign method for information on both approaches
-type AssignMode int
+// Mode determines if the troupe uses a fixed size, or a dynamic size
+// fixed size will use a blind random assignment of work strategy and a fixed number
+// of resources, while a dynamic size will use a priority based assignment strategy
+// which can grow the list of workers as needed.
+type Mode int
 
 const (
-	// ModePriority is for the priority assignment
-	ModePriority AssignMode = iota
-	// ModeRandom is for the random assignment
-	ModeRandom
+	// Dynamic is for the priority assignment
+	Dynamic Mode = iota
+	// Fixed is for the random assignment
+	Fixed
 )
 
 // Troupe represents a swarm of Actors
@@ -30,7 +32,7 @@ type Troupe struct {
 	shutdown           bool
 	defaultActorConfig ActorConfig
 	r                  *rand.Rand
-	assignmentMode     AssignMode
+	mode               Mode
 }
 
 // Config is
@@ -40,7 +42,7 @@ type Config struct {
 	Initial          int
 	IdleActorTimeout time.Duration
 	MailboxSize      int
-	AssignmentMode   AssignMode
+	Mode             Mode
 }
 
 // ActorConfig maps the Troupe Config struct into a ActorConfig
@@ -64,9 +66,9 @@ func NewTroupe(cfg Config) (*Troupe, error) {
 	if cfg.MailboxSize == 0 {
 		cfg.MailboxSize = 1
 	}
-	// For random mode, we need to allocate a fixed pool since the assignment
+	// For fixed mode, we need to allocate a fixed pool since the assignment
 	// will not attempt to grow or shrink the pool
-	if cfg.AssignmentMode == ModeRandom {
+	if cfg.Mode == Fixed {
 		cfg.Min = cfg.Max
 		cfg.Initial = cfg.Max
 	}
@@ -87,7 +89,7 @@ func NewTroupe(cfg Config) (*Troupe, error) {
 		maxActors:          cfg.Max,
 		defaultActorConfig: bCfg,
 		r:                  rand.New(rand.NewSource(time.Now().UnixNano())),
-		assignmentMode:     cfg.AssignmentMode,
+		mode:               cfg.Mode,
 	}, nil
 }
 
@@ -124,7 +126,7 @@ func (t *Troupe) Join() {
 // the random one is overall faster for performance at the cost of utilizing a fixed cost
 // of resources.
 func (t *Troupe) Assign(w Work) error {
-	if t.assignmentMode == ModePriority {
+	if t.mode == Dynamic {
 		return t.assignPriority(w)
 	}
 	return t.assignRand(w)

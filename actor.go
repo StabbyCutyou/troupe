@@ -14,7 +14,7 @@ const (
 // Actor is an actor, who receives messages and acts over them
 type Actor struct {
 	errorHandler func(error)
-	agent        chan Work
+	mailbox      chan Work
 	quit         chan struct{}
 	lastAccepted *int64
 	busy         *int32
@@ -28,11 +28,11 @@ type ActorConfig struct {
 
 // NewActor returns a new Actor
 func NewActor(c ActorConfig) (*Actor, error) {
-	if c.MailboxSize < 1 {
-		return nil, ActorConfigurationError("mailbox must be greater than 0")
+	if c.MailboxSize < 0 {
+		return nil, ActorConfigurationError("mailbox must be greater than or equal to 0")
 	}
 	a := &Actor{
-		agent:        make(chan Work, c.MailboxSize),
+		mailbox:      make(chan Work, c.MailboxSize),
 		quit:         make(chan struct{}),
 		busy:         new(int32),
 		lastFinished: new(int64),
@@ -49,7 +49,7 @@ func (a *Actor) Accept(w Work) error {
 		return ActorShuttingDownError("actor is shutting down, cannot accept work")
 	}
 	select {
-	case a.agent <- w:
+	case a.mailbox <- w:
 		atomic.StoreInt64(a.lastAccepted, time.Now().Unix())
 	default:
 		return ActorFullError("actor is full, cannot accept work")
@@ -99,7 +99,7 @@ func (a *Actor) stop() {
 // isFinished is meant for internal use only, to be called only after shutdown is initiated so
 // that the system knows when the actor has finished all of it's available work
 func (a *Actor) isFinished() bool {
-	if len(a.agent) == 0 && a.IsShutdown() {
+	if len(a.mailbox) == 0 && a.IsShutdown() {
 		return true
 	}
 	return false
@@ -108,7 +108,7 @@ func (a *Actor) isFinished() bool {
 func (a *Actor) loop() {
 	for {
 		select {
-		case w := <-a.agent:
+		case w := <-a.mailbox:
 			atomic.StoreInt32(a.busy, BUSY)
 			if err := w(); err != nil && a.errorHandler != nil {
 				a.errorHandler(err)
@@ -119,7 +119,7 @@ func (a *Actor) loop() {
 			// there is a possibility that this goroutine picks up the quit signal
 			// but something was in the middle of assigning work
 			// so if len of agent isn't 0, we break to the top of the loop and try again
-			if len(a.agent) > 0 {
+			if len(a.mailbox) > 0 {
 				continue
 			}
 			return
