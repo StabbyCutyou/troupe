@@ -82,9 +82,7 @@ func (a *Actor) IsBusy() bool {
 	return false
 }
 
-// IsShutdown returns if the Actor is currently shutting down or not. Note that while this is
-// protected  by a Mutex, by the time you take action on the result of this value,
-// it may have changed by another concurrent operation.
+// IsShutdown returns if the Actor is currently shutting down or not.
 func (a *Actor) IsShutdown() bool {
 	select {
 	case <-a.quit:
@@ -118,10 +116,16 @@ func (a *Actor) loop() {
 			atomic.StoreInt64(a.lastFinished, time.Now().Unix())
 			atomic.StoreInt32(a.busy, NOTBUSY)
 		case <-a.quit:
+			// there is a possibility that this goroutine picks up the quit signal
+			// but something was in the middle of assigning work
+			// so if len of agent isn't 0, we break to the top of the loop and try again
+			if len(a.agent) > 0 {
+				continue
+			}
 			return
 		default:
 			// TODO provide a means of configurable backoff
-			time.Sleep(200 * time.Microsecond)
+			time.Sleep(10 * time.Millisecond)
 		}
 	}
 }

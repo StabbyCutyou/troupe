@@ -6,7 +6,6 @@ package troupe
 import (
 	"fmt"
 	"math/rand"
-	"runtime"
 	"sync"
 	"time"
 )
@@ -85,8 +84,6 @@ func (t *Troupe) Shutdown() error {
 	for _, a := range t.Actors {
 		a.stop()
 	}
-
-	fmt.Printf("Number of goroutines: %d\n", runtime.NumGoroutine())
 	return nil
 }
 
@@ -98,7 +95,6 @@ func (t *Troupe) Join() {
 		a.join()
 	}
 	t.ActorMutex.Unlock()
-	fmt.Printf("Number of goroutines: %d\n", runtime.NumGoroutine())
 }
 
 // Assign will distribute a Letter to the first available Actor. If there are no available Actors (that is, no Actors
@@ -143,7 +139,6 @@ func (t *Troupe) Assign(w Work) error {
 		t.Actors = append(t.Actors, item)
 		return nil
 	}
-
 	// If theres only 1, nothing to rotate on the list
 	if len(t.Actors) == 1 {
 		return t.Actors[0].Accept(w)
