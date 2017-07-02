@@ -10,6 +10,17 @@ import (
 	"time"
 )
 
+// AssignMode determines if the troupe uses a random assignment, or a priority assignment
+// Review the Assign method for information on both approaches
+type AssignMode int
+
+const (
+	// ModePriority is for the priority assignment
+	ModePriority AssignMode = iota
+	// ModeRandom is for the random assignment
+	ModeRandom
+)
+
 // Troupe represents a swarm of Actors
 type Troupe struct {
 	minActors          int
@@ -19,6 +30,7 @@ type Troupe struct {
 	shutdown           bool
 	defaultActorConfig ActorConfig
 	r                  *rand.Rand
+	assignmentMode     AssignMode
 }
 
 // Config is
@@ -28,6 +40,7 @@ type Config struct {
 	Initial          int
 	IdleActorTimeout time.Duration
 	MailboxSize      int
+	AssignmentMode   AssignMode
 }
 
 // ActorConfig maps the Troupe Config struct into a ActorConfig
@@ -51,6 +64,12 @@ func NewTroupe(cfg Config) (*Troupe, error) {
 	if cfg.MailboxSize == 0 {
 		cfg.MailboxSize = 1
 	}
+	// For random mode, we need to allocate a fixed pool since the assignment
+	// will not attempt to grow or shrink the pool
+	if cfg.AssignmentMode == ModeRandom {
+		cfg.Min = cfg.Max
+		cfg.Initial = cfg.Max
+	}
 
 	bCfg := cfg.ActorConfig()
 	Actors := make([]*Actor, 0)
@@ -68,6 +87,7 @@ func NewTroupe(cfg Config) (*Troupe, error) {
 		maxActors:          cfg.Max,
 		defaultActorConfig: bCfg,
 		r:                  rand.New(rand.NewSource(time.Now().UnixNano())),
+		assignmentMode:     cfg.AssignmentMode,
 	}, nil
 }
 
@@ -97,12 +117,24 @@ func (t *Troupe) Join() {
 	t.ActorMutex.Unlock()
 }
 
-// Assign will distribute a Letter to the first available Actor. If there are no available Actors (that is, no Actors
+// Assign will distribute a Work object to the nearest available actor as defined by the
+// Troupes configuration: Either a Priority assignment approach which allows the pool
+// to grow and shrink dynamically, or a Random assignment, which keeps the pool at a fixed size.
+// Both have tradeoffs: The priority one is able to resize and be throttled dynamically, while
+// the random one is overall faster for performance at the cost of utilizing a fixed cost
+// of resources.
+func (t *Troupe) Assign(w Work) error {
+	if t.assignmentMode == ModePriority {
+		return t.assignPriority(w)
+	}
+	return t.assignRand(w)
+}
+
+// assignPriority will distribute a Letter to the first available Actor. If there are no available Actors (that is, no Actors
 // currently free from work, it grow the pool of Actors by 1. If the pool is already full, it will assign the work to the
 // Actor who has least-recently been assigned work. If all Actors have their mailboxes full, Assign will block until
 // one becomes free.
-// Testing this vs AssignRand atm
-func (t *Troupe) Assign(w Work) error {
+func (t *Troupe) assignPriority(w Work) error {
 	t.ActorMutex.Lock()
 	defer t.ActorMutex.Unlock()
 	if t.shutdown {
@@ -153,12 +185,11 @@ func (t *Troupe) Assign(w Work) error {
 	return nil
 }
 
-// AssignRand skips priority, and attempts to assign work randomly
+// assignRand skips priority, and attempts to assign work randomly
 // I've tested crypto rand for a better random distribution, but in all cases it was worse
 // than either the priority assign, or the raw random assign. It's worse than priority
 // assign for smaller sized pools, it's worse than random assign for larger sized pools
 // however it's so poor in general that it would not make a good middle ground option.
-// Testing this vs Assign atm
-func (t *Troupe) AssignRand(w Work) error {
+func (t *Troupe) assignRand(w Work) error {
 	return t.Actors[t.r.Intn(len(t.Actors))].Accept(w)
 }

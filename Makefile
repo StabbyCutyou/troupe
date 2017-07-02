@@ -1,13 +1,13 @@
 .PHONY: test
 
 test_full:
-	go test -v -race -benchmem -bench=.
+	go test -v -race -benchmem -bench=. -timeout=99m
 
 bench:
-	go test -v -bench=. -cpuprofile=cpu.prof
+	go test -v -bench=. -timeout=99m
 
 benchmem:
-		go test -v -benchmem -bench=. -cpuprofile=cpu.prof
+	go test -v -benchmem -bench=. -timeout=99m
 
 test:
 	go test -v

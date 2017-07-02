@@ -17,32 +17,32 @@ var twentymillis Work = func() error {
 }
 
 var testCases = []testCase{
-	//{title: "1w:1a:20ms", work: twentymillis, cfg: Config{MailboxSize: 1, Min: 0, Initial: 0, Max: 1}},
-	//{title: "10w:1a:20ms", work: twentymillis, cfg: Config{MailboxSize: 10, Min: 0, Initial: 0, Max: 1}},
-	//{title: "100w:1a:20ms", work: twentymillis, cfg: Config{MailboxSize: 100, Min: 0, Initial: 0, Max: 1}},
+	{title: "1w:1a:20ms", work: twentymillis, cfg: Config{MailboxSize: 1, Min: 0, Initial: 0, Max: 1}},
+	{title: "10w:1a:20ms", work: twentymillis, cfg: Config{MailboxSize: 10, Min: 0, Initial: 0, Max: 1}},
+	{title: "100w:1a:20ms", work: twentymillis, cfg: Config{MailboxSize: 100, Min: 0, Initial: 0, Max: 1}},
 
-	//{title: "1w:10a:20ms", work: twentymillis, cfg: Config{MailboxSize: 1, Min: 0, Initial: 0, Max: 10}},
-	//{title: "10w:10a:20ms", work: twentymillis, cfg: Config{MailboxSize: 10, Min: 0, Initial: 0, Max: 10}},
-	//{title: "100w:10a:20ms", work: twentymillis, cfg: Config{MailboxSize: 100, Min: 0, Initial: 0, Max: 10}},
+	{title: "1w:10a:20ms", work: twentymillis, cfg: Config{MailboxSize: 1, Min: 0, Initial: 0, Max: 10}},
+	{title: "10w:10a:20ms", work: twentymillis, cfg: Config{MailboxSize: 10, Min: 0, Initial: 0, Max: 10}},
+	{title: "100w:10a:20ms", work: twentymillis, cfg: Config{MailboxSize: 100, Min: 0, Initial: 0, Max: 10}},
 
-	//{title: "1w:100a:20ms", work: twentymillis, cfg: Config{MailboxSize: 1, Min: 0, Initial: 0, Max: 100}},
-	//{title: "10w:100a:20ms", work: twentymillis, cfg: Config{MailboxSize: 10, Min: 0, Initial: 0, Max: 100}},
-	//{title: "100w:100a:20ms", work: twentymillis, cfg: Config{MailboxSize: 100, Min: 0, Initial: 0, Max: 100}},
+	{title: "1w:100a:20ms", work: twentymillis, cfg: Config{MailboxSize: 1, Min: 0, Initial: 0, Max: 100}},
+	{title: "10w:100a:20ms", work: twentymillis, cfg: Config{MailboxSize: 10, Min: 0, Initial: 0, Max: 100}},
+	{title: "100w:100a:20ms", work: twentymillis, cfg: Config{MailboxSize: 100, Min: 0, Initial: 0, Max: 100}},
 
-	//{title: "1w:1ka:20ms", work: twentymillis, cfg: Config{MailboxSize: 1, Min: 0, Initial: 0, Max: 1000}},
-	//{title: "10w:1ka:20ms", work: twentymillis, cfg: Config{MailboxSize: 10, Min: 0, Initial: 0, Max: 1000}},
-	//{title: "100w:1ka:20ms", work: twentymillis, cfg: Config{MailboxSize: 100, Min: 0, Initial: 0, Max: 1000}},
+	{title: "1w:1ka:20ms", work: twentymillis, cfg: Config{MailboxSize: 1, Min: 0, Initial: 0, Max: 1000}},
+	{title: "10w:1ka:20ms", work: twentymillis, cfg: Config{MailboxSize: 10, Min: 0, Initial: 0, Max: 1000}},
+	{title: "100w:1ka:20ms", work: twentymillis, cfg: Config{MailboxSize: 100, Min: 0, Initial: 0, Max: 1000}},
 
-	//{title: "1w:10ka:20ms", work: twentymillis, cfg: Config{MailboxSize: 1, Min: 0, Initial: 0, Max: 10000}},
-	//{title: "10w:10ka:20ms", work: twentymillis, cfg: Config{MailboxSize: 10, Min: 0, Initial: 0, Max: 10000}},
-	//{title: "100w:10ka:20ms", work: twentymillis, cfg: Config{MailboxSize: 100, Min: 0, Initial: 0, Max: 10000}},
+	{title: "1w:10ka:20ms", work: twentymillis, cfg: Config{MailboxSize: 1, Min: 0, Initial: 0, Max: 10000}},
+	{title: "10w:10ka:20ms", work: twentymillis, cfg: Config{MailboxSize: 10, Min: 0, Initial: 0, Max: 10000}},
+	{title: "100w:10ka:20ms", work: twentymillis, cfg: Config{MailboxSize: 100, Min: 0, Initial: 0, Max: 10000}},
 
-	//{title: "1w:100ka:20ms", work: twentymillis, cfg: Config{MailboxSize: 1, Min: 0, Initial: 0, Max: 100000}},
+	{title: "1w:100ka:20ms", work: twentymillis, cfg: Config{MailboxSize: 1, Min: 0, Initial: 0, Max: 100000}},
 	{title: "10w:100ka:20ms", work: twentymillis, cfg: Config{MailboxSize: 10, Min: 0, Initial: 0, Max: 100000}},
-	//{title: "100w:100ka:20ms", work: twentymillis, cfg: Config{MailboxSize: 100, Min: 0, Initial: 0, Max: 100000}},
+	{title: "100w:100ka:20ms", work: twentymillis, cfg: Config{MailboxSize: 100, Min: 0, Initial: 0, Max: 100000}},
 }
 
-func xTestSJ(t *testing.T) {
+func TestSJ(t *testing.T) {
 	for _, c := range testCases {
 		time.Sleep(1 * time.Second)
 		t.Run(c.title, func(t *testing.T) {
@@ -51,14 +51,14 @@ func xTestSJ(t *testing.T) {
 				s.Assign(c.work)
 			}
 			s.Shutdown()
-			//s.Join()
+			s.Join()
 		})
 	}
 }
 
-func XBenchmarkT(b *testing.B) {
+func BenchmarkT(b *testing.B) {
 	for _, c := range testCases {
-		//time.Sleep(1 * time.Second)
+		c.cfg.AssignmentMode = ModePriority
 		b.Run(c.title, func(b *testing.B) {
 			s, _ := NewTroupe(c.cfg)
 			for i := 0; i < b.N; i++ {
@@ -70,27 +70,26 @@ func XBenchmarkT(b *testing.B) {
 				}
 			}
 			s.Shutdown()
-			//s.Join()
+			s.Join()
 		})
 	}
 }
 
 func BenchmarkTR(b *testing.B) {
 	for _, c := range testCases {
-		c.cfg.Initial = c.cfg.Max
-		//time.Sleep(1 * time.Second)
+		c.cfg.AssignmentMode = ModeRandom
 		b.Run(c.title, func(b *testing.B) {
 			s, _ := NewTroupe(c.cfg)
 			for i := 0; i < b.N; i++ {
-				err := s.AssignRand(c.work)
+				err := s.Assign(c.work)
 				for err != nil {
 					// Attempt to assign work, and keep trying until it succeeds
 					// Do not advance b.N until this message is in a queue
-					err = s.AssignRand(c.work)
+					err = s.Assign(c.work)
 				}
 			}
 			s.Shutdown()
-			//s.Join()
+			s.Join()
 		})
 	}
 }
