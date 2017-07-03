@@ -19,9 +19,23 @@ The first step is to determine your configuration options, provided by `troupe.C
 ```golang
 cfg := Config{
     Mode: Dynamic, // Troupes can operate as a Fixed pool of actors, or Dynamic with resisizng
+    ErrorHandler: f(error), // A function which takes an error from a Work item, and determines how to handle it
     MailboxSize: 0, // How big the buffer of work an Actor can hold onto before it is "full"
     Min: 0, // The minimum number of Actors in a pool. Ingored for Fixed Troupes
     Initial: 0, // The initial number of Actors to pre-boot. Ignored for Fixed Troupes
     Max: 1000 // The maximum number of Actors for the Troupe. This is what is used for Fixed Troupes
 }
 ```
+
+Then, create a new Troupe
+
+```golang
+t, err := NewTroupe(c.cfg)
+if err != nil {
+    return err
+}
+```
+
+Now, you can pass the Troupe around and have work assigned to it from any number of concurrent go routines.
+
+Check out the `test/rpc/{client,server}` packages to see a basic implementation and a live test of the concept.
