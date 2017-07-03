@@ -6,7 +6,7 @@ import (
 )
 
 // This is to cover an issue found with an older implementation of the shutdown logic
-func xTestShutdown(t *testing.T) {
+func TestShutdown(t *testing.T) {
 	a, _ := NewActor(ActorConfig{5})
 
 	go func() {
@@ -22,7 +22,7 @@ func xTestShutdown(t *testing.T) {
 	}
 }
 
-func xTestIsFinished(t *testing.T) {
+func TestIsFinished(t *testing.T) {
 	a, _ := NewActor(ActorConfig{5})
 
 	go func() {
