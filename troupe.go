@@ -43,12 +43,14 @@ type Config struct {
 	IdleActorTimeout time.Duration
 	MailboxSize      int
 	Mode             Mode
+	ErrorHandler     ErrorHandler
 }
 
 // ActorConfig maps the Troupe Config struct into a ActorConfig
 func (c Config) ActorConfig() ActorConfig {
 	return ActorConfig{
-		MailboxSize: c.MailboxSize,
+		MailboxSize:  c.MailboxSize,
+		ErrorHandler: c.ErrorHandler,
 	}
 }
 

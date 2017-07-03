@@ -7,7 +7,9 @@ import (
 
 // This is to cover an issue found with an older implementation of the shutdown logic
 func TestShutdown(t *testing.T) {
-	a, _ := NewActor(ActorConfig{5})
+	a, _ := NewActor(ActorConfig{
+		MailboxSize: 5,
+	})
 
 	go func() {
 		a.Accept(func() error {
@@ -23,7 +25,9 @@ func TestShutdown(t *testing.T) {
 }
 
 func TestIsFinished(t *testing.T) {
-	a, _ := NewActor(ActorConfig{5})
+	a, _ := NewActor(ActorConfig{
+		MailboxSize: 5,
+	})
 
 	go func() {
 		a.Accept(func() error {

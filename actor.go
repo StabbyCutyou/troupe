@@ -13,7 +13,7 @@ const (
 
 // Actor is an actor, who receives messages and acts over them
 type Actor struct {
-	errorHandler func(error)
+	errorHandler ErrorHandler
 	mailbox      chan Work
 	quit         chan struct{}
 	lastAccepted *int64
@@ -23,7 +23,8 @@ type Actor struct {
 
 // ActorConfig is the configuration info needed to start a Actor
 type ActorConfig struct {
-	MailboxSize int
+	MailboxSize  int
+	ErrorHandler ErrorHandler
 }
 
 // NewActor returns a new Actor
@@ -37,6 +38,7 @@ func NewActor(c ActorConfig) (*Actor, error) {
 		busy:         new(int32),
 		lastFinished: new(int64),
 		lastAccepted: new(int64),
+		errorHandler: c.ErrorHandler,
 	}
 	go a.loop()
 	return a, nil
