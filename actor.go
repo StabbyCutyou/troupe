@@ -123,9 +123,6 @@ func (a *Actor) loop() {
 				continue
 			}
 			return
-		default:
-			// TODO provide a means of configurable backoff
-			time.Sleep(10 * time.Millisecond)
 		}
 	}
 }
