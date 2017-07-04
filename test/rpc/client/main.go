@@ -14,15 +14,15 @@ func main() {
 	if err != nil {
 		log.Fatal("dialing:", err)
 	}
-	for i := 0; i < 1000; i++ {
+	i := 0
+	for {
+		i++
 		args := message.StuffHappenedEvent{
 			When:  time.Now(),
 			Stuff: fmt.Sprintf("Stuff, yo %d", i),
 		}
 		var b *bool
+		// We don't really care about the reply, just that we make the call
 		client.Go("Submit.ImportantEvent", args, &b, nil)
-		//if err = client.Call("Submit.ImportantEvent", args, &b); err != nil {
-		//	log.Fatal("call reply and error:", b, err)
-		//}
 	}
 }
