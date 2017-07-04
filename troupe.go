@@ -195,5 +195,8 @@ func (t *Troupe) assignPriority(w Work) error {
 // assign for smaller sized pools, it's worse than random assign for larger sized pools
 // however it's so poor in general that it would not make a good middle ground option.
 func (t *Troupe) assignRand(w Work) error {
-	return t.Actors[t.r.Intn(len(t.Actors))].Accept(w)
+	// Rand isn't threadsafe, womp womp
+	t.ActorMutex.Lock()
+	defer t.ActorMutex.Unlock()
+	return t.Actors[t.r.Int()%(len(t.Actors)-1)].Accept(w)
 }

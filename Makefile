@@ -1,4 +1,4 @@
-.PHONY: test
+.PHONY: test test_full bench benchmem deps check
 
 test_full:
 	go test -v -race -benchmem -bench=. -timeout=99m
