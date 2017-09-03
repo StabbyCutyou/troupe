@@ -198,5 +198,5 @@ func (t *Troupe) assignRand(w Work) error {
 	// Rand isn't threadsafe, womp womp
 	t.ActorMutex.Lock()
 	defer t.ActorMutex.Unlock()
-	return t.Actors[t.r.Int()%(len(t.Actors)-1)].Accept(w)
+	return t.Actors[t.r.Int()%(len(t.Actors))].Accept(w)
 }
