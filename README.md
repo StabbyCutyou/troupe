@@ -38,4 +38,58 @@ if err != nil {
 
 Now, you can pass the Troupe around and have work assigned to it from any number of concurrent go routines.
 
+## Assigning work
+
+Once you have a troupe, you can assign work to it via the Assign method:
+
+```golang
+w := func() error {
+    // returns nil, or error
+    return closedOverService.DoThing(closedOverDataA, closedOverDataB)
+}
+
+err := t.Assign(w)
+// These are the three types of errors that an Assign call could respond with
+switch x := err.(type):
+case ShuttingDownError:
+    // Means that you attempted to assign work during shutdown
+case ActorShuttingDownError:
+    // Should not be possible to be returned, but means you assigned work 
+    // while shutting down but was caught by the actor
+case ActorFullError:
+    // Means that the actors mailbox was full, and you can try again as much
+    // as you like, or consider the message a lost cause after a number of failed
+    // attempts to assign
+case nil:
+    // No error, proceed
+```
+
+## Shutting down
+
+Once your application is ready to terminate, simply call Shutdown, like so
+
+```golang
+t.Shutdown()
+```
+
+This will begin signalling all Actors that they should no longer accept work, which 
+will prevent new work from being assigned.
+
+It's important to note that this will not pre-empty any inflight work, which could still
+be going on.
+
+If you need to ensure current work finishes, you can use the Join method, to block
+until all work has been completed.
+
+```golang
+t.Join()
+```
+
+If you don't care if the inflight work is finished, simply calling Shutdown is enough
+to safely terminate, for your value of safety.
+
+## Example Implementation
+
 Check out the `test/rpc/{client,server}` packages to see a basic implementation and a live test of the concept.
+
+It includes a randomized error simulation, to demonstrate how the error handler could work.
