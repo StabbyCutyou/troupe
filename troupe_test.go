@@ -74,7 +74,6 @@ var testCases = []testCase{
 
 func TestSJ(t *testing.T) {
 	for _, c := range testCases {
-		time.Sleep(1 * time.Second)
 		t.Run(c.title, func(t *testing.T) {
 			s, _ := NewTroupe(c.cfg)
 			for i := 0; i < 100; i++ {
@@ -102,4 +101,5 @@ func BenchmarkTroupAssignment(b *testing.B) {
 			s.Join()
 		})
 	}
+
 }
