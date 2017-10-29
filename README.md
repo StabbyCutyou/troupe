@@ -1,4 +1,4 @@
-# Troupe
+# Troupe [![GoDoc](http://img.shields.io/badge/go-documentation-blue.svg?style=flat-square)](http://godoc.org/github.com/StabbyCutyou/troupe) [![Build Status](https://api.travis-ci.org/StabbyCutyou/troupe.svg)](https://travis-ci.org/StabbyCutyou/troupe)
 
 Troupe provides an implementation of an Actor based concurrency system in Go
 
@@ -40,7 +40,7 @@ Now, you can pass the Troupe around and have work assigned to it from any number
 
 ## Assigning work
 
-Once you have a troupe, you can assign work to it via the Assign method:
+Once you have a troupe, you can assign work to it via the Assign method. Assigning work is done by passing in a closure, which contains all the state needed to perform the work.
 
 ```golang
 w := func() error {
@@ -87,6 +87,12 @@ t.Join()
 
 If you don't care if the inflight work is finished, simply calling Shutdown is enough
 to safely terminate, for your value of safety.
+
+## Retry
+
+Troupe has no built-in method of retry. It relies on you to define a way via the ErrorHandler to provide enough context to know when you need to re-assign a job, and how to do so. You should return a custom error that has enough context about the job being performed that the ErrorHandler can take appropriate action.
+
+When shutting down, if you're feeding messages into Troupe from a broker that does not automatically enable retry after some timeout, you'll need to track the messages in flight, and signal the message broker that those messages should be eligible for retry.
 
 ## Example Implementation
 
