@@ -1,4 +1,4 @@
-# Troupe
+# Troupe [![GoDoc](http://img.shields.io/badge/go-documentation-blue.svg?style=flat-square)](http://godoc.org/github.com/StabbyCutyou/troupe) [![Build Status](https://api.travis-ci.org/StabbyCutyou/troupe.svg)](https://travis-ci.org/StabbyCutyou/troupe)
 
 Troupe provides an implementation of an Actor based concurrency system in Go
 
